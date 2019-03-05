@@ -1,11 +1,11 @@
-import React, { useState } from 'react'
-import { Query, Mutation, ApolloConsumer } from 'react-apollo'
+import React, { useState, useEffect } from 'react'
 import { gql } from 'apollo-boost'
+import { useQuery, useMutation, useApolloClient } from 'react-apollo-hooks'
 
 import Authors from './components/Authors'
 import Books from './components/Books'
-import AddBook from './components/AddBook'
-import Login from './components/Login'
+import AddBookForm from './components/AddBookForm'
+import LoginForm from './components/LoginForm'
 
 const ALL_AUTHORS = gql`
   {
@@ -68,86 +68,88 @@ const App = () => {
   const [showAuthors, setShowAuthors] = useState(true)
   const [showBooks, setShowBooks] = useState(false)
   const [showAddBook, setShowAddbook] = useState(false)
-  const [showLogin, setShowLogin] = useState(false)
+  const [token, setToken] = useState(null)
+
+  const client = useApolloClient()
+
+  const authorResults = useQuery(ALL_AUTHORS)
+  const bookResults = useQuery(ALL_BOOKS)
+  const addBook = useMutation(CREATE_BOOK, {
+    refetchQueries: [{ query: ALL_AUTHORS }, { query: ALL_BOOKS }]
+  })
+  const login = useMutation(LOGIN)
+
+  useEffect(() => {
+    const token = localStorage.getItem('library-user-token')
+    if (token) {
+      setToken(token)
+    }
+  })
 
   const resetVisibility = () => {
     setShowAuthors(false)
     setShowBooks(false)
     setShowAddbook(false)
-    setShowLogin(false)
+  }
+
+  const logout = () => {
+    setToken(null)
+    localStorage.clear()
+    client.resetStore()
+  }
+
+  const Buttons = () => {
+    return (
+      <div>
+        <button
+          onClick={() => {
+            resetVisibility()
+            setShowAuthors(true)
+          }}
+        >
+          authors
+        </button>
+        <button
+          onClick={() => {
+            resetVisibility()
+            setShowBooks(true)
+          }}
+        >
+          books
+        </button>
+        <button
+          onClick={() => {
+            resetVisibility()
+            setShowAddbook(true)
+          }}
+        >
+          add book
+        </button>
+        <button
+          onClick={() => {
+            resetVisibility()
+            setShowAuthors(true)
+            logout()
+          }}
+        >
+          logout
+        </button>
+      </div>
+    )
+  }
+
+  if (!token) {
+    return <LoginForm login={login} setToken={(token) => setToken(token)} />
   }
 
   return (
     <div>
-      <button
-        onClick={() => {
-          resetVisibility()
-          setShowAuthors(true)
-        }}
-      >
-        authors
-      </button>
-      <button
-        onClick={() => {
-          resetVisibility()
-          setShowBooks(true)
-        }}
-      >
-        books
-      </button>
-      <button
-        onClick={() => {
-          resetVisibility()
-          setShowAddbook(true)
-        }}
-      >
-        add book
-      </button>
-      <button
-        onClick={() => {
-          resetVisibility()
-          setShowLogin(true)
-        }}
-      >
-        login
-      </button>
-      {showAuthors ? (
-        <ApolloConsumer>
-          {(client) => (
-            <Query query={ALL_AUTHORS}>
-              {(result) => (
-                <Authors
-                  result={result}
-                  client={client}
-                  ALL_AUTHORS={ALL_AUTHORS}
-                />
-              )}
-            </Query>
-          )}
-        </ApolloConsumer>
-      ) : null}
-      {showBooks ? (
-        <ApolloConsumer>
-          {() => (
-            <Query query={ALL_BOOKS}>
-              {(result) => <Books result={result} />}
-            </Query>
-          )}
-        </ApolloConsumer>
-      ) : null}
-      {showAddBook ? (
-        <Mutation
-          mutation={CREATE_BOOK}
-          refetchQueries={[{ query: ALL_AUTHORS }, { query: ALL_BOOKS }]}
-        >
-          {(addBook) => <AddBook addBook={addBook} />}
-        </Mutation>
-      ) : null}
-      {showLogin ? (
-        <Mutation mutation={LOGIN}>
-          {(login) => <Login login={login} />}
-        </Mutation>
-      ) : null}
+      <Buttons />
+      {showAuthors && (
+        <Authors result={authorResults} ALL_AUTHORS={ALL_AUTHORS} />
+      )}
+      {showBooks && <Books result={bookResults} />}
+      {showAddBook && <AddBookForm addBook={addBook} />}
     </div>
   )
 }

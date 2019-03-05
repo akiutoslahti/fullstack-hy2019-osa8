@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import Select from 'react-select'
 import { gql } from 'apollo-boost'
+import { useApolloClient } from 'react-apollo-hooks'
 
 const UPDATE_AUTHOR = gql`
   mutation updateAuthor($name: String!, $setBornTo: Int!) {
@@ -16,7 +17,8 @@ const Authors = (props) => {
   const [name, setName] = useState({})
   const [born, setBorn] = useState('')
 
-  const { result, client, ALL_AUTHORS } = props
+  const { result, ALL_AUTHORS } = props
+  const client = useApolloClient()
 
   const updateBirthyear = async (event) => {
     event.preventDefault()

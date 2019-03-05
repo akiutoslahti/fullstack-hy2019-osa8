@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
 
-const Login = (props) => {
+const LoginForm = (props) => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
-  const { login } = props
+  const { login, setToken } = props
 
   const submitLogin = async (event) => {
     event.preventDefault()
@@ -13,7 +13,8 @@ const Login = (props) => {
 
     const token = result.data.login.value
 
-    console.log(token)
+    setToken(token)
+    localStorage.setItem('library-user-token', token)
 
     setUsername('')
     setPassword('')
@@ -47,4 +48,4 @@ const Login = (props) => {
   )
 }
 
-export default Login
+export default LoginForm
