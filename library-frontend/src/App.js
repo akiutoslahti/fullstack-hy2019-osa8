@@ -120,6 +120,7 @@ const App = () => {
   const [showLogin, setShowLogin] = useState(false)
   const [showRecommend, setShowRecommend] = useState(false)
   const [token, setToken] = useState(null)
+  const [notification, setNotification] = useState(null)
 
   const client = useApolloClient()
   const authorResults = useQuery(ALL_AUTHORS)
@@ -214,9 +215,25 @@ const App = () => {
     )
   }
 
+  const Notification = () => {
+    if (notification) {
+      return (
+        <div style={{ color: notification.type === 'error' ? 'red' : 'green' }}>
+          <h3>{notification.message}</h3>
+        </div>
+      )
+    }
+    return null
+  }
+
+  const clearNotification = () => {
+    setNotification(null)
+  }
+
   return (
     <div>
       <Buttons />
+      <Notification />
       {showAuthors && (
         <Authors
           result={authorResults}
@@ -241,6 +258,14 @@ const App = () => {
         subscription={BOOK_ADDED}
         onSubscriptionData={({ subscriptionData }) => {
           const addedBook = subscriptionData.data.bookAdded
+          setNotification({
+            message: `New book added: ${addedBook.title} by ${
+              addedBook.author.name
+            }`
+          })
+          setTimeout(() => {
+            clearNotification()
+          }, 5000)
           const dataInStore = client.readQuery({ query: ALL_BOOKS })
           dataInStore.allBooks.push(addedBook)
           client.writeQuery({
