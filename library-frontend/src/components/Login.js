@@ -20,27 +20,30 @@ const Login = (props) => {
   }
 
   return (
-    <form onSubmit={submitLogin}>
-      <label>
-        username{' '}
-        <input
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-      </label>
-      <br />
-      <label>
-        password{' '}
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-      </label>
-      <br />
-      <input type="submit" value="Login" />
-    </form>
+    <div>
+      <h2>login</h2>
+      <form onSubmit={submitLogin}>
+        <label>
+          username{' '}
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+        </label>
+        <br />
+        <label>
+          password{' '}
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </label>
+        <br />
+        <input type="submit" value="Login" />
+      </form>
+    </div>
   )
 }
 

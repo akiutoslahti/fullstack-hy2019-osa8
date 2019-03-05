@@ -64,13 +64,13 @@ const LOGIN = gql`
   }
 `
 
-const App = (props) => {
+const App = () => {
   const [showAuthors, setShowAuthors] = useState(true)
   const [showBooks, setShowBooks] = useState(false)
   const [showAddBook, setShowAddbook] = useState(false)
   const [showLogin, setShowLogin] = useState(false)
 
-  const hideAll = () => {
+  const resetVisibility = () => {
     setShowAuthors(false)
     setShowBooks(false)
     setShowAddbook(false)
@@ -80,36 +80,32 @@ const App = (props) => {
   return (
     <div>
       <button
-        id="showAuthors"
         onClick={() => {
-          hideAll()
+          resetVisibility()
           setShowAuthors(true)
         }}
       >
         authors
       </button>
       <button
-        id="showBooks"
         onClick={() => {
-          hideAll()
+          resetVisibility()
           setShowBooks(true)
         }}
       >
         books
       </button>
       <button
-        id="showAddBook"
         onClick={() => {
-          hideAll()
+          resetVisibility()
           setShowAddbook(true)
         }}
       >
         add book
       </button>
       <button
-        id="showLogin"
         onClick={() => {
-          hideAll()
+          resetVisibility()
           setShowLogin(true)
         }}
       >
