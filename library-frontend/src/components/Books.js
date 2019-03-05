@@ -4,12 +4,11 @@ import BookList from './BookList'
 
 const Books = (props) => {
   const [filter, setFilter] = useState(null)
-  const [books, setBooks] = useState(null)
-  const [genreList, setGenreList] = useState(null)
+  const [filteredBooks, setFilteredBooks] = useState(null)
 
   const client = useApolloClient()
 
-  const { ALL_BOOKS } = props
+  const { ALL_BOOKS, result } = props
 
   useEffect(() => {
     fetchBooks()
@@ -21,25 +20,17 @@ const Books = (props) => {
         query: ALL_BOOKS,
         variables: { genre: filter }
       })
-      setBooks(result.data.allBooks)
+      setFilteredBooks(result.data.allBooks)
     } else {
-      const result = await client.query({
-        query: ALL_BOOKS
-      })
-      setBooks(result.data.allBooks)
-      setGenreList(extractGenreList(result.data.allBooks))
+      setFilteredBooks(null)
     }
   }
 
-  const extractGenreList = (books) => {
-    const genreArray = books.map((book) => book.genres)
+  const GenreFilters = () => {
+    const genreArray = result.data.allBooks.map((book) => book.genres)
     const flattenedGenres = [].concat.apply([], genreArray)
     const uniqueGenres = [...new Set(flattenedGenres)]
     return uniqueGenres
-  }
-
-  const GenreFilters = () => {
-    return genreList
       .map((genre, index) => (
         <button key={index + 1} onClick={() => setFilter(genre)}>
           {genre}
@@ -52,7 +43,7 @@ const Books = (props) => {
       )
   }
 
-  if (!books || !genreList) {
+  if (result.loading) {
     return <div>loading books...</div>
   }
 
@@ -64,7 +55,7 @@ const Books = (props) => {
           in genre <strong>{filter}</strong>
         </div>
       )}
-      <BookList books={books} />
+      <BookList books={filteredBooks ? filteredBooks : result.data.allBooks} />
       <br />
       <GenreFilters />
     </div>

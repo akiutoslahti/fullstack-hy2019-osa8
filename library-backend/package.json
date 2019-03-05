@@ -2,10 +2,10 @@
   "name": "library",
   "version": "1.0.0",
   "description": "",
-  "main": "library-backend.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node library-backend.js",
-    "watch": "nodemon library-backend.js"
+    "start": "node index.js",
+    "watch": "nodemon index.js"
   },
   "author": "",
   "license": "ISC",

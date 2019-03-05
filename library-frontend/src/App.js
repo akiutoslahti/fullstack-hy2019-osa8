@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { gql } from 'apollo-boost'
+import { Subscription } from 'react-apollo'
 import { useQuery, useMutation, useApolloClient } from 'react-apollo-hooks'
 
 import Authors from './components/Authors'
@@ -8,29 +9,53 @@ import AddBookForm from './components/AddBookForm'
 import LoginForm from './components/LoginForm'
 import Recommend from './components/Recommend'
 
+const AUTHOR_DETAILS = gql`
+  fragment AuthorDetails on Author {
+    id
+    name
+    born
+    bookCount
+  }
+`
+
+const BOOK_DETAILS = gql`
+  fragment BookDetails on Book {
+    id
+    title
+    author {
+      ...AuthorDetails
+    }
+    published
+    genres
+  }
+  ${AUTHOR_DETAILS}
+`
+
 const ALL_AUTHORS = gql`
-  {
+  query {
     allAuthors {
-      name
-      born
-      bookCount
+      ...AuthorDetails
     }
   }
+  ${AUTHOR_DETAILS}
+`
+
+const UPDATE_AUTHOR = gql`
+  mutation updateAuthor($name: String!, $setBornTo: Int!) {
+    editAuthor(name: $name, setBornTo: $setBornTo) {
+      ...AuthorDetails
+    }
+  }
+  ${AUTHOR_DETAILS}
 `
 
 const ALL_BOOKS = gql`
   query genreBooks($genre: String, $author: String) {
     allBooks(genre: $genre, author: $author) {
-      title
-      author {
-        name
-        born
-        bookCount
-      }
-      published
-      genres
+      ...BookDetails
     }
   }
+  ${BOOK_DETAILS}
 `
 
 const CREATE_BOOK = gql`
@@ -46,16 +71,10 @@ const CREATE_BOOK = gql`
       published: $published
       genres: $genres
     ) {
-      title
-      published
-      author {
-        name
-        born
-        bookCount
-      }
-      genres
+      ...BookDetails
     }
   }
+  ${BOOK_DETAILS}
 `
 
 const LOGIN = gql`
@@ -76,6 +95,24 @@ const ME = gql`
   }
 `
 
+const BOOK_ADDED = gql`
+  subscription {
+    bookAdded {
+      ...BookDetails
+    }
+  }
+  ${BOOK_DETAILS}
+`
+
+const AUTHOR_ADDED = gql`
+  subscription {
+    authorAdded {
+      ...AuthorDetails
+    }
+  }
+  ${AUTHOR_DETAILS}
+`
+
 const App = () => {
   const [showAuthors, setShowAuthors] = useState(true)
   const [showBooks, setShowBooks] = useState(false)
@@ -85,8 +122,8 @@ const App = () => {
   const [token, setToken] = useState(null)
 
   const client = useApolloClient()
-
   const authorResults = useQuery(ALL_AUTHORS)
+  const bookResults = useQuery(ALL_BOOKS)
   const addBook = useMutation(CREATE_BOOK, {
     refetchQueries: [{ query: ALL_AUTHORS }, { query: ALL_BOOKS }]
   })
@@ -184,10 +221,11 @@ const App = () => {
         <Authors
           result={authorResults}
           ALL_AUTHORS={ALL_AUTHORS}
+          UPDATE_AUTHOR={UPDATE_AUTHOR}
           token={token}
         />
       )}
-      {showBooks && <Books ALL_BOOKS={ALL_BOOKS} />}
+      {showBooks && <Books result={bookResults} ALL_BOOKS={ALL_BOOKS} />}
       {showAddBook && <AddBookForm addBook={addBook} />}
       {showLogin && (
         <LoginForm
@@ -198,6 +236,35 @@ const App = () => {
         />
       )}
       {showRecommend && <Recommend ME={ME} ALL_BOOKS={ALL_BOOKS} />}
+
+      <Subscription
+        subscription={BOOK_ADDED}
+        onSubscriptionData={({ subscriptionData }) => {
+          const addedBook = subscriptionData.data.bookAdded
+          const dataInStore = client.readQuery({ query: ALL_BOOKS })
+          dataInStore.allBooks.push(addedBook)
+          client.writeQuery({
+            query: ALL_BOOKS,
+            data: dataInStore
+          })
+        }}
+      >
+        {() => null}
+      </Subscription>
+      <Subscription
+        subscription={AUTHOR_ADDED}
+        onSubscriptionData={({ subscriptionData }) => {
+          const addedAuthor = subscriptionData.data.authorAdded
+          const dataInStore = client.readQuery({ query: ALL_AUTHORS })
+          dataInStore.allAuthors.push(addedAuthor)
+          client.writeQuery({
+            query: ALL_AUTHORS,
+            data: dataInStore
+          })
+        }}
+      >
+        {() => null}
+      </Subscription>
     </div>
   )
 }

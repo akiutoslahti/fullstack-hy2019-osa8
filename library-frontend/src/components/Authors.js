@@ -1,23 +1,12 @@
 import React, { useState } from 'react'
 import Select from 'react-select'
-import { gql } from 'apollo-boost'
 import { useApolloClient } from 'react-apollo-hooks'
-
-const UPDATE_AUTHOR = gql`
-  mutation updateAuthor($name: String!, $setBornTo: Int!) {
-    editAuthor(name: $name, setBornTo: $setBornTo) {
-      name
-      born
-      bookCount
-    }
-  }
-`
 
 const Authors = (props) => {
   const [name, setName] = useState({})
   const [born, setBorn] = useState('')
 
-  const { result, ALL_AUTHORS, token } = props
+  const { result, ALL_AUTHORS, UPDATE_AUTHOR, token } = props
   const client = useApolloClient()
 
   const updateBirthyear = async (event) => {
@@ -63,41 +52,37 @@ const Authors = (props) => {
     )
   }
 
-  const SetBirthYearForm = () => {
-    return (
-      <div>
-        <h2>set birthyear</h2>
-        <form onSubmit={updateBirthyear}>
-          <Select
-            value={name}
-            onChange={(selectedOption) => setName(selectedOption)}
-            options={result.data.allAuthors.map((author) => {
-              return {
-                value: author.name,
-                label: author.name
-              }
-            })}
-          />
-          <label>
-            born{' '}
-            <input
-              type="text"
-              name="born"
-              value={born}
-              onChange={(e) => setBorn(e.target.value)}
-            />
-          </label>
-          <br />
-          <input type="submit" value="update author" />
-        </form>
-      </div>
-    )
-  }
-
   return (
     <div>
       <AuthorList />
-      {token && <SetBirthYearForm />}
+      {token && (
+        <div>
+          <h2>set birthyear</h2>
+          <form onSubmit={updateBirthyear}>
+            <Select
+              value={name}
+              onChange={(selectedOption) => setName(selectedOption)}
+              options={result.data.allAuthors.map((author) => {
+                return {
+                  value: author.name,
+                  label: author.name
+                }
+              })}
+            />
+            <label>
+              born{' '}
+              <input
+                type="text"
+                name="born"
+                value={born}
+                onChange={(e) => setBorn(e.target.value)}
+              />
+            </label>
+            <br />
+            <input type="submit" value="update author" />
+          </form>
+        </div>
+      )}
     </div>
   )
 }

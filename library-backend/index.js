@@ -7,6 +7,8 @@ const {
 
 const mongoose = require('mongoose')
 const jwt = require('jsonwebtoken')
+const { PubSub } = require('apollo-server')
+const pubSub = new PubSub()
 
 const Author = require('./models/author')
 const Book = require('./models/book')
@@ -74,6 +76,11 @@ const typeDefs = gql`
     createUser(username: String!, favoriteGenre: String!): User
     login(username: String!, password: String!): Token
   }
+
+  type Subscription {
+    bookAdded: Book!
+    authorAdded: Author!
+  }
 `
 
 const resolvers = {
@@ -117,23 +124,25 @@ const resolvers = {
         throw new UserInputError('all fields must be provided')
       }
 
-      const foundAuthor = await Author.findOne({ name: author })
-      if (foundAuthor) {
-        const book = new Book({
-          title,
-          published,
-          author: foundAuthor._id,
-          genres
-        })
-        await book.save()
-        return Book.findById(book._id).populate('author')
+      let dbAuthor = await Author.findOne({ name: author })
+      if (!dbAuthor) {
+        const newAuthor = new Author({ name: author })
+        await newAuthor.save()
+        pubSub.publish('AUTHOR_ADDED', { authorAdded: newAuthor })
+        dbAuthor = newAuthor
       }
 
-      const newAuthor = new Author({ name: author })
-      await newAuthor.save()
-      const book = new Book({ title, published, author: newAuthor._id, genres })
+      const book = new Book({
+        title,
+        published,
+        author: dbAuthor._id,
+        genres
+      })
       await book.save()
-      return Book.findById(book._id).populate('author')
+
+      const bookToReturn = await Book.findById(book._id).populate('author')
+      pubSub.publish('BOOK_ADDED', { bookAdded: bookToReturn })
+      return bookToReturn
     },
     editAuthor: async (root, args, context) => {
       const { currentUser } = context
@@ -172,6 +181,14 @@ const resolvers = {
 
       return { value: jwt.sign(userForToken, JWT_SECRET) }
     }
+  },
+  Subscription: {
+    bookAdded: {
+      subscribe: () => pubSub.asyncIterator(['BOOK_ADDED'])
+    },
+    authorAdded: {
+      subscribe: () => pubSub.asyncIterator(['AUTHOR_ADDED'])
+    }
   }
 }
 
@@ -188,6 +205,7 @@ const server = new ApolloServer({
   }
 })
 
-server.listen().then(({ url }) => {
+server.listen().then(({ url, subscriptionsUrl }) => {
   console.log(`Server ready at ${url}`)
+  console.log(`Subscriptions ready at ${subscriptionsUrl}`)
 })
