@@ -5,19 +5,19 @@ import BookList from './BookList'
 const Recommend = (props) => {
   const [recommends, setRecommends] = useState(null)
   const [favoriteGenre, setFavoriteGenre] = useState('')
-  const { ME, GENRE_BOOKS } = props
+  const { ME, ALL_BOOKS } = props
 
   const client = useApolloClient()
 
   useEffect(() => {
-    fetchGenreBooks()
+    fetchFavoriteGenreBooks()
   })
 
-  const fetchGenreBooks = async () => {
+  const fetchFavoriteGenreBooks = async () => {
     const ownDetails = await client.query({ query: ME })
     setFavoriteGenre(ownDetails.data.me.favoriteGenre)
     const myGenreBooks = await client.query({
-      query: GENRE_BOOKS,
+      query: ALL_BOOKS,
       variables: { genre: favoriteGenre }
     })
     setRecommends(myGenreBooks.data.allBooks)

@@ -19,8 +19,8 @@ const ALL_AUTHORS = gql`
 `
 
 const ALL_BOOKS = gql`
-  {
-    allBooks {
+  query genreBooks($genre: String, $author: String) {
+    allBooks(genre: $genre, author: $author) {
       title
       author {
         name
@@ -76,21 +76,6 @@ const ME = gql`
   }
 `
 
-const GENRE_BOOKS = gql`
-  query genreBooks($genre: String!) {
-    allBooks(genre: $genre) {
-      title
-      author {
-        name
-        born
-        bookCount
-      }
-      published
-      genres
-    }
-  }
-`
-
 const App = () => {
   const [showAuthors, setShowAuthors] = useState(true)
   const [showBooks, setShowBooks] = useState(false)
@@ -102,7 +87,6 @@ const App = () => {
   const client = useApolloClient()
 
   const authorResults = useQuery(ALL_AUTHORS)
-  const bookResults = useQuery(ALL_BOOKS)
   const addBook = useMutation(CREATE_BOOK, {
     refetchQueries: [{ query: ALL_AUTHORS }, { query: ALL_BOOKS }]
   })
@@ -203,7 +187,7 @@ const App = () => {
           token={token}
         />
       )}
-      {showBooks && <Books result={bookResults} />}
+      {showBooks && <Books ALL_BOOKS={ALL_BOOKS} />}
       {showAddBook && <AddBookForm addBook={addBook} />}
       {showLogin && (
         <LoginForm
@@ -213,7 +197,7 @@ const App = () => {
           setShowAuthors={setShowAuthors}
         />
       )}
-      {showRecommend && <Recommend ME={ME} GENRE_BOOKS={GENRE_BOOKS} />}
+      {showRecommend && <Recommend ME={ME} ALL_BOOKS={ALL_BOOKS} />}
     </div>
   )
 }

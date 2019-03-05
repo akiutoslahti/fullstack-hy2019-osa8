@@ -1,19 +1,45 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useApolloClient } from 'react-apollo-hooks'
 import BookList from './BookList'
 
-const Books = ({ result }) => {
+const Books = (props) => {
   const [filter, setFilter] = useState(null)
+  const [books, setBooks] = useState(null)
+  const [genreList, setGenreList] = useState(null)
 
-  if (result.loading) {
-    return <div>loading books...</div>
+  const client = useApolloClient()
+
+  const { ALL_BOOKS } = props
+
+  useEffect(() => {
+    fetchBooks()
+  }, [filter])
+
+  const fetchBooks = async () => {
+    if (filter) {
+      const result = await client.query({
+        query: ALL_BOOKS,
+        variables: { genre: filter }
+      })
+      setBooks(result.data.allBooks)
+    } else {
+      const result = await client.query({
+        query: ALL_BOOKS
+      })
+      setBooks(result.data.allBooks)
+      setGenreList(extractGenreList(result.data.allBooks))
+    }
   }
 
-  const genreArray = result.data.allBooks.map((book) => book.genres)
-  const flattenedGenres = [].concat.apply([], genreArray)
-  const uniqueGenres = [...new Set(flattenedGenres)]
+  const extractGenreList = (books) => {
+    const genreArray = books.map((book) => book.genres)
+    const flattenedGenres = [].concat.apply([], genreArray)
+    const uniqueGenres = [...new Set(flattenedGenres)]
+    return uniqueGenres
+  }
 
   const GenreFilters = () => {
-    return uniqueGenres
+    return genreList
       .map((genre, index) => (
         <button key={index + 1} onClick={() => setFilter(genre)}>
           {genre}
@@ -26,6 +52,10 @@ const Books = ({ result }) => {
       )
   }
 
+  if (!books || !genreList) {
+    return <div>loading books...</div>
+  }
+
   return (
     <div>
       <h2>books</h2>
@@ -34,11 +64,7 @@ const Books = ({ result }) => {
           in genre <strong>{filter}</strong>
         </div>
       )}
-      <BookList
-        books={result.data.allBooks.filter((book) =>
-          filter ? book.genres.includes(filter) : true
-        )}
-      />
+      <BookList books={books} />
       <br />
       <GenreFilters />
     </div>
