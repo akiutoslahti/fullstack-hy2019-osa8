@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import BookList from './BookList'
 
 const Books = ({ result }) => {
   const [filter, setFilter] = useState(null)
@@ -33,28 +34,11 @@ const Books = ({ result }) => {
           in genre <strong>{filter}</strong>
         </div>
       )}
-      <table>
-        <thead>
-          <tr>
-            <th />
-            <th>author</th>
-            <th>published</th>
-          </tr>
-        </thead>
-        <tbody>
-          {result.data.allBooks
-            .filter((book) => (filter ? book.genres.includes(filter) : true))
-            .map((book, index) => {
-              return (
-                <tr key={index}>
-                  <td>{book.title}</td>
-                  <td>{book.author.name}</td>
-                  <td>{book.published}</td>
-                </tr>
-              )
-            })}
-        </tbody>
-      </table>
+      <BookList
+        books={result.data.allBooks.filter((book) =>
+          filter ? book.genres.includes(filter) : true
+        )}
+      />
       <br />
       <GenreFilters />
     </div>

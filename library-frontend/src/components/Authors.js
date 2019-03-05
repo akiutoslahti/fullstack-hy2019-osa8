@@ -17,7 +17,7 @@ const Authors = (props) => {
   const [name, setName] = useState({})
   const [born, setBorn] = useState('')
 
-  const { result, ALL_AUTHORS } = props
+  const { result, ALL_AUTHORS, token } = props
   const client = useApolloClient()
 
   const updateBirthyear = async (event) => {
@@ -35,53 +35,69 @@ const Authors = (props) => {
     return <div>loading authors...</div>
   }
 
+  const AuthorList = () => {
+    return (
+      <div>
+        <h2>authors</h2>
+        <table>
+          <thead>
+            <tr>
+              <th />
+              <th>born</th>
+              <th>books</th>
+            </tr>
+          </thead>
+          <tbody>
+            {result.data.allAuthors.map((author, index) => {
+              return (
+                <tr key={index}>
+                  <td>{author.name}</td>
+                  <td>{author.born}</td>
+                  <td>{author.bookCount}</td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+
+  const SetBirthYearForm = () => {
+    return (
+      <div>
+        <h2>set birthyear</h2>
+        <form onSubmit={updateBirthyear}>
+          <Select
+            value={name}
+            onChange={(selectedOption) => setName(selectedOption)}
+            options={result.data.allAuthors.map((author) => {
+              return {
+                value: author.name,
+                label: author.name
+              }
+            })}
+          />
+          <label>
+            born{' '}
+            <input
+              type="text"
+              name="born"
+              value={born}
+              onChange={(e) => setBorn(e.target.value)}
+            />
+          </label>
+          <br />
+          <input type="submit" value="update author" />
+        </form>
+      </div>
+    )
+  }
+
   return (
     <div>
-      <h2>authors</h2>
-      <table>
-        <thead>
-          <tr>
-            <th />
-            <th>born</th>
-            <th>books</th>
-          </tr>
-        </thead>
-        <tbody>
-          {result.data.allAuthors.map((author, index) => {
-            return (
-              <tr key={index}>
-                <td>{author.name}</td>
-                <td>{author.born}</td>
-                <td>{author.bookCount}</td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
-      <h2>set birthyear</h2>
-      <form onSubmit={updateBirthyear}>
-        <Select
-          value={name}
-          onChange={(selectedOption) => setName(selectedOption)}
-          options={result.data.allAuthors.map((author) => {
-            return {
-              value: author.name,
-              label: author.name
-            }
-          })}
-        />
-        <label>
-          born{' '}
-          <input
-            type="text"
-            name="born"
-            value={born}
-            onChange={(e) => setBorn(e.target.value)}
-          />
-        </label>
-        <br />
-        <input type="submit" value="update author" />
-      </form>
+      <AuthorList />
+      {token && <SetBirthYearForm />}
     </div>
   )
 }

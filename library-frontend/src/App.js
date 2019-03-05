@@ -6,6 +6,7 @@ import Authors from './components/Authors'
 import Books from './components/Books'
 import AddBookForm from './components/AddBookForm'
 import LoginForm from './components/LoginForm'
+import Recommend from './components/Recommend'
 
 const ALL_AUTHORS = gql`
   {
@@ -65,10 +66,37 @@ const LOGIN = gql`
   }
 `
 
+const ME = gql`
+  query {
+    me {
+      id
+      username
+      favoriteGenre
+    }
+  }
+`
+
+const GENRE_BOOKS = gql`
+  query genreBooks($genre: String!) {
+    allBooks(genre: $genre) {
+      title
+      author {
+        name
+        born
+        bookCount
+      }
+      published
+      genres
+    }
+  }
+`
+
 const App = () => {
   const [showAuthors, setShowAuthors] = useState(true)
   const [showBooks, setShowBooks] = useState(false)
   const [showAddBook, setShowAddbook] = useState(false)
+  const [showLogin, setShowLogin] = useState(false)
+  const [showRecommend, setShowRecommend] = useState(false)
   const [token, setToken] = useState(null)
 
   const client = useApolloClient()
@@ -91,6 +119,8 @@ const App = () => {
     setShowAuthors(false)
     setShowBooks(false)
     setShowAddbook(false)
+    setShowLogin(false)
+    setShowRecommend(false)
   }
 
   const logout = () => {
@@ -118,39 +148,72 @@ const App = () => {
         >
           books
         </button>
-        <button
-          onClick={() => {
-            resetVisibility()
-            setShowAddbook(true)
-          }}
-        >
-          add book
-        </button>
-        <button
-          onClick={() => {
-            resetVisibility()
-            setShowAuthors(true)
-            logout()
-          }}
-        >
-          logout
-        </button>
+        {token && (
+          <button
+            onClick={() => {
+              resetVisibility()
+              setShowAddbook(true)
+            }}
+          >
+            add book
+          </button>
+        )}
+        {!token && (
+          <button
+            onClick={() => {
+              resetVisibility()
+              setShowLogin(true)
+            }}
+          >
+            login
+          </button>
+        )}
+        {token && (
+          <button
+            onClick={() => {
+              resetVisibility()
+              setShowRecommend(true)
+            }}
+          >
+            recommend
+          </button>
+        )}
+        {token && (
+          <button
+            onClick={() => {
+              resetVisibility()
+              setShowAuthors(true)
+              logout()
+            }}
+          >
+            logout
+          </button>
+        )}
       </div>
     )
-  }
-
-  if (!token) {
-    return <LoginForm login={login} setToken={(token) => setToken(token)} />
   }
 
   return (
     <div>
       <Buttons />
       {showAuthors && (
-        <Authors result={authorResults} ALL_AUTHORS={ALL_AUTHORS} />
+        <Authors
+          result={authorResults}
+          ALL_AUTHORS={ALL_AUTHORS}
+          token={token}
+        />
       )}
       {showBooks && <Books result={bookResults} />}
       {showAddBook && <AddBookForm addBook={addBook} />}
+      {showLogin && (
+        <LoginForm
+          login={login}
+          setToken={(token) => setToken(token)}
+          resetVisibility={resetVisibility}
+          setShowAuthors={setShowAuthors}
+        />
+      )}
+      {showRecommend && <Recommend ME={ME} GENRE_BOOKS={GENRE_BOOKS} />}
     </div>
   )
 }

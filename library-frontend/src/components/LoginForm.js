@@ -4,7 +4,7 @@ const LoginForm = (props) => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
-  const { login, setToken } = props
+  const { login, setToken, resetVisibility, setShowAuthors } = props
 
   const submitLogin = async (event) => {
     event.preventDefault()
@@ -15,9 +15,11 @@ const LoginForm = (props) => {
 
     setToken(token)
     localStorage.setItem('library-user-token', token)
-
     setUsername('')
     setPassword('')
+
+    resetVisibility()
+    setShowAuthors(true)
   }
 
   return (
