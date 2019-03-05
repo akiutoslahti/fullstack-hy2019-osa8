@@ -27,6 +27,7 @@ const ALL_BOOKS = gql`
         bookCount
       }
       published
+      genres
     }
   }
 `
