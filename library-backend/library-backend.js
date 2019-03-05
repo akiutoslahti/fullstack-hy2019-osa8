@@ -109,7 +109,7 @@ const resolvers = {
     addBook: async (root, args, context) => {
       const { currentUser } = context
       if (!currentUser) {
-        throw new AuthenticationError('not authenticated')
+        //throw new AuthenticationError('not authenticated')
       }
 
       const { title, published, author, genres } = args
@@ -138,7 +138,7 @@ const resolvers = {
     editAuthor: async (root, args, context) => {
       const { currentUser } = context
       if (!currentUser) {
-        throw new AuthenticationError('not authenticated')
+        //throw new AuthenticationError('not authenticated')
       }
 
       const author = await Author.findOne({ name: args.name })

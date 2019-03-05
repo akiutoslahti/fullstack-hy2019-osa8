@@ -1,10 +1,11 @@
-import React, { Component } from 'react'
+import React, { useState } from 'react'
 import { Query, Mutation, ApolloConsumer } from 'react-apollo'
 import { gql } from 'apollo-boost'
 
 import Authors from './components/Authors'
 import Books from './components/Books'
 import AddBook from './components/AddBook'
+import Login from './components/Login'
 
 const ALL_AUTHORS = gql`
   {
@@ -55,87 +56,104 @@ const CREATE_BOOK = gql`
   }
 `
 
-class App extends Component {
-  constructor(props) {
-    super(props)
-
-    this.state = {
-      showAuthors: false,
-      showBooks: false,
-      showAddBook: false
+const LOGIN = gql`
+  mutation login($username: String!, $password: String!) {
+    login(username: $username, password: $password) {
+      value
     }
   }
+`
 
-  componentDidMount() {
-    this.setState((state) => {
-      return {
-        ...state,
-        showAuthors: true
-      }
-    })
+const App = (props) => {
+  const [showAuthors, setShowAuthors] = useState(true)
+  const [showBooks, setShowBooks] = useState(false)
+  const [showAddBook, setShowAddbook] = useState(false)
+  const [showLogin, setShowLogin] = useState(false)
+
+  const hideAll = () => {
+    setShowAuthors(false)
+    setShowBooks(false)
+    setShowAddbook(false)
+    setShowLogin(false)
   }
 
-  resetState = () => {
-    this.setState(() => {
-      return {
-        showAuthors: false,
-        showBooks: false,
-        showAddBook: false
-      }
-    })
-  }
-
-  handleClick = (event) => {
-    const { id } = event.target
-    this.resetState()
-    this.setState((state) => {
-      const newState = { ...state }
-      newState[id] = true
-      return newState
-    })
-  }
-
-  render() {
-    return (
-      <div>
-        <button id="showAuthors" onClick={this.handleClick}>
-          authors
-        </button>
-        <button id="showBooks" onClick={this.handleClick}>
-          books
-        </button>
-        <button id="showAddBook" onClick={this.handleClick}>
-          add book
-        </button>
-        {this.state.showAuthors ? (
-          <ApolloConsumer>
-            {(client) => (
-              <Query query={ALL_AUTHORS}>
-                {(result) => <Authors result={result} client={client} />}
-              </Query>
-            )}
-          </ApolloConsumer>
-        ) : null}
-        {this.state.showBooks ? (
-          <ApolloConsumer>
-            {() => (
-              <Query query={ALL_BOOKS}>
-                {(result) => <Books result={result} />}
-              </Query>
-            )}
-          </ApolloConsumer>
-        ) : null}
-        {this.state.showAddBook ? (
-          <Mutation
-            mutation={CREATE_BOOK}
-            refetchQueries={[{ query: ALL_AUTHORS }, { query: ALL_BOOKS }]}
-          >
-            {(addBook) => <AddBook addBook={addBook} />}
-          </Mutation>
-        ) : null}
-      </div>
-    )
-  }
+  return (
+    <div>
+      <button
+        id="showAuthors"
+        onClick={() => {
+          hideAll()
+          setShowAuthors(true)
+        }}
+      >
+        authors
+      </button>
+      <button
+        id="showBooks"
+        onClick={() => {
+          hideAll()
+          setShowBooks(true)
+        }}
+      >
+        books
+      </button>
+      <button
+        id="showAddBook"
+        onClick={() => {
+          hideAll()
+          setShowAddbook(true)
+        }}
+      >
+        add book
+      </button>
+      <button
+        id="showLogin"
+        onClick={() => {
+          hideAll()
+          setShowLogin(true)
+        }}
+      >
+        login
+      </button>
+      {showAuthors ? (
+        <ApolloConsumer>
+          {(client) => (
+            <Query query={ALL_AUTHORS}>
+              {(result) => (
+                <Authors
+                  result={result}
+                  client={client}
+                  ALL_AUTHORS={ALL_AUTHORS}
+                />
+              )}
+            </Query>
+          )}
+        </ApolloConsumer>
+      ) : null}
+      {showBooks ? (
+        <ApolloConsumer>
+          {() => (
+            <Query query={ALL_BOOKS}>
+              {(result) => <Books result={result} />}
+            </Query>
+          )}
+        </ApolloConsumer>
+      ) : null}
+      {showAddBook ? (
+        <Mutation
+          mutation={CREATE_BOOK}
+          refetchQueries={[{ query: ALL_AUTHORS }, { query: ALL_BOOKS }]}
+        >
+          {(addBook) => <AddBook addBook={addBook} />}
+        </Mutation>
+      ) : null}
+      {showLogin ? (
+        <Mutation mutation={LOGIN}>
+          {(login) => <Login login={login} />}
+        </Mutation>
+      ) : null}
+    </div>
+  )
 }
 
 export default App
