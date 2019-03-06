@@ -100,16 +100,15 @@ const resolvers = {
       return books
     },
     allAuthors: () => {
-      return Author.find({})
+      return Author.find({}).populate('book')
     },
     me: (root, args, context) => {
       return context.currentUser
     }
   },
   Author: {
-    bookCount: async (root) => {
-      const books = await Book.find({ author: root._id })
-      return books.length
+    bookCount: (root) => {
+      return root.books.length
     }
   },
   Mutation: {
@@ -139,6 +138,9 @@ const resolvers = {
         genres
       })
       await book.save()
+
+      dbAuthor.books.push(book._id)
+      await dbAuthor.save()
 
       const bookToReturn = await Book.findById(book._id).populate('author')
       pubSub.publish('BOOK_ADDED', { bookAdded: bookToReturn })
