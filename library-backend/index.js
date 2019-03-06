@@ -10,14 +10,15 @@ const jwt = require('jsonwebtoken')
 const { PubSub } = require('apollo-server')
 const pubSub = new PubSub()
 
+require('dotenv').config()
+
 const Author = require('./models/author')
 const Book = require('./models/book')
 const User = require('./models/user')
 
 mongoose.set('useFindAndModify', false)
 
-const MONGODB_URI =
-  'mongodb://testiseppo:testiseppo1@ds159185.mlab.com:59185/graphql'
+const MONGODB_URI = process.env.MONGODB_URI
 
 const JWT_SECRET = 'very secret secret'
 
