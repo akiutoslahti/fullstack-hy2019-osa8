@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { gql } from 'apollo-boost'
 import { Subscription } from 'react-apollo'
 import { useQuery, useMutation, useApolloClient } from 'react-apollo-hooks'
 
@@ -9,109 +8,12 @@ import AddBookForm from './components/AddBookForm'
 import LoginForm from './components/LoginForm'
 import Recommend from './components/Recommend'
 
-const AUTHOR_DETAILS = gql`
-  fragment AuthorDetails on Author {
-    id
-    name
-    born
-    bookCount
-  }
-`
-
-const BOOK_DETAILS = gql`
-  fragment BookDetails on Book {
-    id
-    title
-    author {
-      ...AuthorDetails
-    }
-    published
-    genres
-  }
-  ${AUTHOR_DETAILS}
-`
-
-const ALL_AUTHORS = gql`
-  query {
-    allAuthors {
-      ...AuthorDetails
-    }
-  }
-  ${AUTHOR_DETAILS}
-`
-
-const UPDATE_AUTHOR = gql`
-  mutation updateAuthor($name: String!, $setBornTo: Int!) {
-    editAuthor(name: $name, setBornTo: $setBornTo) {
-      ...AuthorDetails
-    }
-  }
-  ${AUTHOR_DETAILS}
-`
-
-const ALL_BOOKS = gql`
-  query genreBooks($genre: String, $author: String) {
-    allBooks(genre: $genre, author: $author) {
-      ...BookDetails
-    }
-  }
-  ${BOOK_DETAILS}
-`
-
-const CREATE_BOOK = gql`
-  mutation createBook(
-    $title: String!
-    $author: String!
-    $published: Int!
-    $genres: [String!]!
-  ) {
-    addBook(
-      title: $title
-      author: $author
-      published: $published
-      genres: $genres
-    ) {
-      ...BookDetails
-    }
-  }
-  ${BOOK_DETAILS}
-`
-
-const LOGIN = gql`
-  mutation login($username: String!, $password: String!) {
-    login(username: $username, password: $password) {
-      value
-    }
-  }
-`
-
-const ME = gql`
-  query {
-    me {
-      id
-      username
-      favoriteGenre
-    }
-  }
-`
-
-const BOOK_ADDED = gql`
-  subscription {
-    bookAdded {
-      ...BookDetails
-    }
-  }
-  ${BOOK_DETAILS}
-`
-
-const AUTHOR_ADDED = gql`
-  subscription {
-    authorAdded {
-      ...AuthorDetails
-    }
-  }
-  ${AUTHOR_DETAILS}
-`
+import ALL_AUTHORS from './graphql/queries/allAuthors'
+import ALL_BOOKS from './graphql/queries/allBooks'
+import CREATE_BOOK from './graphql/mutations/createBook'
+import LOGIN from './graphql/mutations/login'
+import AUTHOR_ADDED from './graphql/subscriptions/authorAdded'
+import BOOK_ADDED from './graphql/subscriptions/bookAdded'
 
 const App = () => {
   const [showAuthors, setShowAuthors] = useState(true)
@@ -234,15 +136,8 @@ const App = () => {
     <div>
       <Buttons />
       <Notification />
-      {showAuthors && (
-        <Authors
-          result={authorResults}
-          ALL_AUTHORS={ALL_AUTHORS}
-          UPDATE_AUTHOR={UPDATE_AUTHOR}
-          token={token}
-        />
-      )}
-      {showBooks && <Books result={bookResults} ALL_BOOKS={ALL_BOOKS} />}
+      {showAuthors && <Authors result={authorResults} token={token} />}
+      {showBooks && <Books result={bookResults} />}
       {showAddBook && <AddBookForm addBook={addBook} />}
       {showLogin && (
         <LoginForm
@@ -252,7 +147,7 @@ const App = () => {
           setShowAuthors={setShowAuthors}
         />
       )}
-      {showRecommend && <Recommend ME={ME} ALL_BOOKS={ALL_BOOKS} />}
+      {showRecommend && <Recommend />}
 
       <Subscription
         subscription={BOOK_ADDED}

@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react'
 import { useApolloClient } from 'react-apollo-hooks'
 import BookList from './BookList'
 
+import ME from '../graphql/queries/me'
+import ALL_BOOKS from '../graphql/queries/allBooks'
+
 const Recommend = (props) => {
   const [recommends, setRecommends] = useState(null)
   const [favoriteGenre, setFavoriteGenre] = useState('')
-  const { ME, ALL_BOOKS } = props
 
   const client = useApolloClient()
 

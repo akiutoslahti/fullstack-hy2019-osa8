@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react'
 import { useApolloClient } from 'react-apollo-hooks'
 import BookList from './BookList'
 
+import ALL_BOOKS from '../graphql/queries/allBooks'
+
 const Books = (props) => {
   const [filter, setFilter] = useState(null)
   const [filteredBooks, setFilteredBooks] = useState(null)
 
   const client = useApolloClient()
 
-  const { ALL_BOOKS, result } = props
+  const { result } = props
 
   useEffect(() => {
     fetchBooks()

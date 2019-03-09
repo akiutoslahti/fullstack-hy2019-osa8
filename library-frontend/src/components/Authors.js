@@ -2,11 +2,14 @@ import React, { useState } from 'react'
 import Select from 'react-select'
 import { useApolloClient } from 'react-apollo-hooks'
 
+import ALL_AUTHORS from '../graphql/queries/allAuthors'
+import UPDATE_AUTHOR from '../graphql/mutations/updateAuthor'
+
 const Authors = (props) => {
   const [name, setName] = useState({})
   const [born, setBorn] = useState('')
 
-  const { result, ALL_AUTHORS, UPDATE_AUTHOR, token } = props
+  const { result, token } = props
   const client = useApolloClient()
 
   const updateBirthyear = async (event) => {
